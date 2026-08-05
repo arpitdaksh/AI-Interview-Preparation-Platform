@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:3000",
+    baseURL: "https://ai-interview-preparation-platform-fze2.onrender.com",
     withCredentials: true,
 })
 
@@ -133,7 +133,7 @@ export const readSSEStream = async ({ url, options, onEvent, signal }) => {
  */
 export const streamSendMessage = async ({ chatId, message, signal, onEvent }) => {
     await readSSEStream({
-        url: `http://localhost:3000/api/chat/${chatId}/messages`,
+        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/messages`,
         options: {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -158,7 +158,7 @@ export const streamSendMessageWithFile = async ({ chatId, message, file, signal,
     }
 
     await readSSEStream({
-        url: `http://localhost:3000/api/chat/${chatId}/messages`,
+        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/messages`,
         options: {
             method: "POST",
             body: formData
@@ -174,7 +174,7 @@ export const streamSendMessageWithFile = async ({ chatId, message, file, signal,
  */
 export const streamRegenerateReply = async ({ chatId, signal, onEvent }) => {
     await readSSEStream({
-        url: `http://localhost:3000/api/chat/${chatId}/regenerate`,
+        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/regenerate`,
         options: {
             method: "POST",
             headers: { "Content-Type": "application/json" },

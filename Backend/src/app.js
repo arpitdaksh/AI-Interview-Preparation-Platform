@@ -6,18 +6,36 @@ const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+// app.use(cors({
+//     origin(origin, callback) {
+//         // Allow requests with no origin (e.g. curl, Postman) and any localhost dev
+//         // server (5173, 5174, 127.0.0.1, etc.). In production, replace with the
+//         // exact frontend origin(s).
+//         if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+//             return callback(null, true)
+//         }
+//         return callback(new Error("Not allowed by CORS"))
+//     },
+//     credentials: true
+// }))
+
 app.use(cors({
     origin(origin, callback) {
-        // Allow requests with no origin (e.g. curl, Postman) and any localhost dev
-        // server (5173, 5174, 127.0.0.1, etc.). In production, replace with the
-        // exact frontend origin(s).
-        if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-            return callback(null, true)
+
+        const allowedOrigins = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://ai-interview-preparation-platform-kappa.vercel.app"
+        ];
+
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
-        return callback(new Error("Not allowed by CORS"))
+
+        return callback(new Error("Not allowed by CORS"));
     },
     credentials: true
-}))
+}));
 
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")

@@ -1,0 +1,540 @@
+// ── Platform Layout (Sidebar + Main) ─────────────────────────────────────────
+.platform-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.platform-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: #1a1a2e;
+    border-right: 1px solid #2d2d3d;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        padding: 8px 12px;
+        margin-bottom: 24px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s;
+
+        &:hover { background: #2d2d3d; }
+        span { color: #e2e8f0; }
+    }
+
+    &__nav {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+
+        &:hover {
+            background: #2d2d3d;
+            color: #e2e8f0;
+        }
+
+        &--active {
+            background: #4f46e5;
+            color: white;
+
+            &:hover { background: #4338ca; }
+        }
+    }
+
+    &__icon {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    &__footer {
+        border-top: 1px solid #2d2d3d;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    &__theme {
+        width: 100%;
+        text-align: left;
+        padding: 8px 12px;
+        background: none;
+        border: none;
+        border-radius: 8px;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        transition: all 0.2s;
+
+        &:hover { background: #2d2d3d; color: #e2e8f0; }
+    }
+
+    &__user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #4f46e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    &__username {
+        flex: 1;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__logout {
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.2s;
+
+        &:hover { color: #dc2626; }
+    }
+}
+
+.platform-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.platform-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #94a3b8;
+    font-size: 1.1rem;
+}
+
+// ── Light theme ──────────────────────────────────────────────────────────────
+[data-theme="light"] {
+    .platform-sidebar {
+        background: white;
+        border-color: #e2e8f0;
+    }
+
+    .platform-sidebar__brand span { color: #1e293b; }
+    .platform-sidebar__link { color: #64748b; &:hover { background: #f1f5f9; color: #1e293b; } }
+    .platform-sidebar__link--active { background: #4f46e5; color: white; &:hover { background: #4338ca; } }
+    .platform-sidebar__theme { color: #64748b; &:hover { background: #f1f5f9; color: #1e293b; } }
+    .platform-sidebar__username { color: #1e293b; }
+    .platform-sidebar__footer { border-color: #e2e8f0; }
+    .platform-loading { color: #64748b; }
+}
+
+// ── Platform Page Layout ─────────────────────────────────────────────────────
+.platform-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    min-height: 100vh;
+}
+
+.platform-header {
+    margin-bottom: 32px;
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+}
+
+.platform-subtitle {
+    color: #94a3b8;
+    font-size: 1rem;
+}
+
+// ── Dashboard Grid ───────────────────────────────────────────────────────────
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.dashboard-card {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: var(--card-color, #4f46e5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    &__icon {
+        font-size: 2rem;
+        margin-bottom: 12px;
+    }
+
+    &__value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--card-color, #4f46e5);
+        margin-bottom: 4px;
+    }
+
+    &__title {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+}
+
+// ── Notifications ────────────────────────────────────────────────────────────
+.dashboard-notifications {
+    h2 {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
+    }
+}
+
+.notifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.notification-card {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 12px;
+    padding: 16px 20px;
+
+    &__title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4f46e5;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__message {
+        font-size: 0.95rem;
+        color: #e2e8f0;
+        line-height: 1.5;
+    }
+}
+
+// ── Skeleton Loading ─────────────────────────────────────────────────────────
+.platform-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.skeleton-card {
+    height: 160px;
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 16px;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+// ── Generic Card ─────────────────────────────────────────────────────────────
+.platform-card {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.platform-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.platform-card__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.platform-card__subtitle {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+.platform-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &--primary {
+        background: #4f46e5;
+        color: white;
+
+        &:hover { background: #4338ca; }
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    &--secondary {
+        background: #2d2d3d;
+        color: #e2e8f0;
+
+        &:hover { background: #3d3d4d; }
+    }
+
+    &--danger {
+        background: #dc2626;
+        color: white;
+
+        &:hover { background: #b91c1c; }
+    }
+
+    &--small {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+    }
+
+    &--full {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+// ── Form Elements ────────────────────────────────────────────────────────────
+.platform-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #161616;
+    border: 1px solid #2d2d3d;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: #4f46e5; }
+    &::placeholder { color: #64748b; }
+}
+
+.platform-select {
+    width: 100%;
+    padding: 10px 14px;
+    background: #161616;
+    border: 1px solid #2d2d3d;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    outline: none;
+    cursor: pointer;
+
+    &:focus { border-color: #4f46e5; }
+}
+
+.platform-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 14px;
+    background: #161616;
+    border: 1px solid #2d2d3d;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    font-family: "Fira Code", "Consolas", monospace;
+
+    &:focus { border-color: #4f46e5; }
+}
+
+// ── Fields ───────────────────────────────────────────────────────────────────
+.platform-field {
+    margin-bottom: 16px;
+
+    label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #94a3b8;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+// ── Tags / Badges ────────────────────────────────────────────────────────────
+.platform-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &--high { background: rgba(220, 38, 38, 0.15); color: #fca5a5; }
+    &--medium { background: rgba(217, 119, 6, 0.15); color: #fbbf24; }
+    &--low { background: rgba(5, 150, 105, 0.15); color: #6ee7b7; }
+}
+
+// ── Score Ring ───────────────────────────────────────────────────────────────
+.score-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+
+    &--high { background: rgba(5, 150, 105, 0.15); color: #6ee7b7; border: 3px solid #059669; }
+    &--mid { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 3px solid #d97706; }
+    &--low { background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 3px solid #dc2626; }
+}
+
+// ── Navigation item icons ────────────────────────────────────────────────────
+.nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #2d2d3d;
+    border: none;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { background: #3d3d4d; }
+    &--active { background: #4f46e5; color: white; }
+}
+
+// ── Empty State ──────────────────────────────────────────────────────────────
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+
+    &__icon { font-size: 3rem; margin-bottom: 16px; }
+    &__title { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+    &__subtitle { color: #94a3b8; font-size: 0.95rem; margin-bottom: 24px; }
+}
+
+// ── Progress Bar ─────────────────────────────────────────────────────────────
+.progress-bar {
+    height: 8px;
+    background: #2d2d3d;
+    border-radius: 999px;
+    overflow: hidden;
+
+    &__fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.5s ease;
+    }
+}
+
+// ── Light Theme ──────────────────────────────────────────────────────────────
+[data-theme="light"] {
+    .platform-page { background: #f8fafc; color: #1e293b; }
+
+    .dashboard-card, .notification-card, .platform-card {
+        background: white;
+        border-color: #e2e8f0;
+    }
+
+    .platform-card__subtitle,
+    .dashboard-card__title,
+    .platform-subtitle {
+        color: #64748b;
+    }
+
+    .platform-btn--secondary {
+        background: #e2e8f0;
+        color: #1e293b;
+        &:hover { background: #cbd5e1; }
+    }
+
+    .platform-input, .platform-select, .platform-textarea {
+        background: white;
+        border-color: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .skeleton-card {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+    }
+
+    .nav-icon-btn {
+        background: #e2e8f0;
+        color: #1e293b;
+        &:hover { background: #cbd5e1; }
+    }
+
+    .notification-card__message { color: #334155; }
+    .empty-state__subtitle { color: #94a3b8; }
+    .progress-bar { background: #e2e8f0; }
+}

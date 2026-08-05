@@ -1,0 +1,62 @@
+// ── Analytics Grid ───────────────────────────────────────────────────────────
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.analytics-section {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+
+    &__title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+}
+
+.analytics-empty {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+// ── Tag List ─────────────────────────────────────────────────────────────────
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+// ── Progress List ────────────────────────────────────────────────────────────
+.progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.progress-item {
+    &__label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    &__date { color: #94a3b8; }
+    &__score { font-weight: 600; color: #4f46e5; }
+}
+
+// ── Light Theme ──────────────────────────────────────────────────────────────
+[data-theme="light"] {
+    .analytics-section {
+        background: white;
+        border-color: #e2e8f0;
+    }
+    .analytics-empty { color: #94a3b8; }
+    .progress-item__date { color: #64748b; }
+}

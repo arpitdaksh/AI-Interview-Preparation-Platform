@@ -1,0 +1,5 @@
+wfITGgrMCGxxrvCu
+
+mongodb+srv://arpit19411_db_user:wfITGgrMCGxxrvCu
+@interview-ai-cluter.6lic969.mongodb.net/
+mongodb+srv://arpit19411_db_user:<db_password>@interview-ai-cluter.6lic969.mongodb.net/

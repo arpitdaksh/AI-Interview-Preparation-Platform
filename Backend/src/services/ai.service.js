@@ -198,8 +198,18 @@ async function generatePdfFromHtml(htmlContent) {
     const executablePath = getBrowserExecutable()
     console.log("[PDF] browser executable found:", executablePath ?? "NONE (using puppeteer's bundled Chromium)")
 
-    const launchOptions = executablePath ? { executablePath } : {}
-    const browser = await puppeteer.launch(launchOptions)
+    // const launchOptions = executablePath ? { executablePath } : {}
+    // const browser = await puppeteer.launch(launchOptions)
+
+    const browser = await puppeteer.launch({
+      executablePath: executablePath || undefined,
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ]
+    })
     try {
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: "networkidle0" })

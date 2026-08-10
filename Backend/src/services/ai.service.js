@@ -237,27 +237,61 @@ Return ONLY valid JSON in this exact format:
 //     }
 // }
 async function generatePdfFromHtml(htmlContent) {
-    console.log("[PDF] setContent HTML length:", htmlContent?.length ?? "NULL")
+    console.log(
+        "[PDF] Starting PDF generation. HTML length:",
+        htmlContent?.length ?? "NULL"
+    )
 
+    if (!htmlContent) {
+        throw new Error("HTML content is empty.")
+    }
+
+    // Puppeteer executable path
     const executablePath = await puppeteer.executablePath()
 
-    console.log("[PDF] Puppeteer executable path:", executablePath)
+    console.log(
+        "[PDF] Puppeteer executable path:",
+        executablePath
+    )
+
+    if (!executablePath) {
+        throw new Error(
+            "Puppeteer could not find Chrome executable."
+        )
+    }
 
     const browser = await puppeteer.launch({
-        executablePath
+        executablePath: executablePath,
+
+        // Required for Render/Linux environment
+        headless: true,
+
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu"
+        ]
     })
 
+    console.log("[PDF] Browser launched successfully")
+
     try {
-        const page = await browser.newPage();
+        const page = await browser.newPage()
+
+        console.log("[PDF] New page created")
 
         await page.setContent(htmlContent, {
             waitUntil: "networkidle0"
         })
 
-        console.log("[PDF] setContent OK")
+        console.log("[PDF] HTML loaded successfully")
 
         const pdfResult = await page.pdf({
             format: "A4",
+
+            printBackground: true,
+
             margin: {
                 top: "20mm",
                 bottom: "20mm",
@@ -266,22 +300,39 @@ async function generatePdfFromHtml(htmlContent) {
             }
         })
 
-        const pdfBuffer = Buffer.from(pdfResult)
-
         console.log(
-            "[PDF] page.pdf() returned buffer length:",
-            pdfBuffer.length
+            "[PDF] page.pdf() completed. Buffer size:",
+            pdfResult?.length ?? "NULL"
         )
 
-        if (pdfBuffer.length === 0) {
+        if (!pdfResult || pdfResult.length === 0) {
             throw new Error(
-                "Puppeteer page.pdf() returned an empty buffer (0 bytes)."
+                "Puppeteer page.pdf() returned an empty PDF buffer."
             )
         }
 
+        const pdfBuffer = Buffer.from(pdfResult)
+
+        console.log(
+            "[PDF] PDF buffer created successfully:",
+            pdfBuffer.length,
+            "bytes"
+        )
+
         return pdfBuffer
+
+    } catch (error) {
+        console.error(
+            "[PDF] Error while generating PDF:",
+            error
+        )
+
+        throw error
+
     } finally {
         await browser.close()
+
+        console.log("[PDF] Browser closed")
     }
 }
 

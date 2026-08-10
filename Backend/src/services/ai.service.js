@@ -2,7 +2,7 @@ const OpenAI = require("openai");
 const { z } = require("zod")
 const { zodToJsonSchema } = require("zod-to-json-schema")
 const puppeteer = require("puppeteer")
-const fs = require("fs")
+// const fs = require("fs")
 
 const ai = new OpenAI({
     apiKey: process.env.OPENROUTER_API_KEY,
@@ -11,27 +11,27 @@ const ai = new OpenAI({
 
 // Find an installed Chromium-based browser for Puppeteer to use for PDF generation.
 // Chrome and Edge (Windows/Mac/Linux) both support headless PDF rendering.
-const CANDIDATE_BROWSERS = [
-    process.env.PUPPETEER_EXECUTABLE_PATH,
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/microsoft-edge",
-].filter(Boolean)
+// const CANDIDATE_BROWSERS = [
+//     process.env.PUPPETEER_EXECUTABLE_PATH,
+//     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+//     "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+//     "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+//     "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+//     "/usr/bin/google-chrome",
+//     "/usr/bin/google-chrome-stable",
+//     "/usr/bin/chromium",
+//     "/usr/bin/chromium-browser",
+//     "/usr/bin/microsoft-edge",
+// ].filter(Boolean)
 
-function getBrowserExecutable() {
-    for (const p of CANDIDATE_BROWSERS) {
-        try {
-            if (fs.existsSync(p)) return p
-        } catch { /* ignore */ }
-    }
-    return null
-}
+// function getBrowserExecutable() {
+//     for (const p of CANDIDATE_BROWSERS) {
+//         try {
+//             if (fs.existsSync(p)) return p
+//         } catch { /* ignore */ }
+//     }
+//     return null
+// }
 
 
 const interviewReportSchema = z.object({
@@ -192,31 +192,73 @@ Return ONLY valid JSON in this exact format:
 
 }
 
+// async function generatePdfFromHtml(htmlContent) {
+//     console.log("[PDF] setContent HTML length:", htmlContent?.length ?? "NULL")
+
+//     const executablePath = getBrowserExecutable()
+//     console.log("[PDF] browser executable found:", executablePath ?? "NONE (using puppeteer's bundled Chromium)")
+
+//     // const launchOptions = executablePath ? { executablePath } : {}
+//     // const browser = await puppeteer.launch(launchOptions)
+
+//     const browser = await puppeteer.launch({
+//       executablePath: executablePath || undefined,
+//       headless: true,
+//       args: [
+//         "--no-sandbox",
+//         "--disable-setuid-sandbox",
+//         "--disable-dev-shm-usage",
+//       ]
+//     })
+//     try {
+//         const page = await browser.newPage();
+//         await page.setContent(htmlContent, { waitUntil: "networkidle0" })
+//         console.log("[PDF] setContent OK")
+
+//         const pdfResult = await page.pdf({
+//             format: "A4", margin: {
+//                 top: "20mm",
+//                 bottom: "20mm",
+//                 left: "15mm",
+//                 right: "15mm"
+//             }
+//         })
+
+//         const pdfBuffer = Buffer.from(pdfResult)
+//         console.log("[PDF] page.pdf() returned buffer length:", pdfBuffer.length)
+
+//         if (pdfBuffer.length === 0) {
+//             throw new Error("Puppeteer page.pdf() returned an empty buffer (0 bytes).")
+//         }
+
+//         return pdfBuffer
+//     } finally {
+//         await browser.close()
+//     }
+// }
 async function generatePdfFromHtml(htmlContent) {
     console.log("[PDF] setContent HTML length:", htmlContent?.length ?? "NULL")
 
-    const executablePath = getBrowserExecutable()
-    console.log("[PDF] browser executable found:", executablePath ?? "NONE (using puppeteer's bundled Chromium)")
+    const executablePath = puppeteer.executablePath()
 
-    // const launchOptions = executablePath ? { executablePath } : {}
-    // const browser = await puppeteer.launch(launchOptions)
+    console.log("[PDF] Puppeteer executable path:", executablePath)
 
     const browser = await puppeteer.launch({
-      executablePath: executablePath || undefined,
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-      ]
+        executablePath
     })
+
     try {
         const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" })
+
+        await page.setContent(htmlContent, {
+            waitUntil: "networkidle0"
+        })
+
         console.log("[PDF] setContent OK")
 
         const pdfResult = await page.pdf({
-            format: "A4", margin: {
+            format: "A4",
+            margin: {
                 top: "20mm",
                 bottom: "20mm",
                 left: "15mm",
@@ -225,10 +267,16 @@ async function generatePdfFromHtml(htmlContent) {
         })
 
         const pdfBuffer = Buffer.from(pdfResult)
-        console.log("[PDF] page.pdf() returned buffer length:", pdfBuffer.length)
+
+        console.log(
+            "[PDF] page.pdf() returned buffer length:",
+            pdfBuffer.length
+        )
 
         if (pdfBuffer.length === 0) {
-            throw new Error("Puppeteer page.pdf() returned an empty buffer (0 bytes).")
+            throw new Error(
+                "Puppeteer page.pdf() returned an empty buffer (0 bytes)."
+            )
         }
 
         return pdfBuffer

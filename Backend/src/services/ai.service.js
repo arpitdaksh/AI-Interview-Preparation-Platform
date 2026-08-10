@@ -239,7 +239,7 @@ Return ONLY valid JSON in this exact format:
 async function generatePdfFromHtml(htmlContent) {
     console.log("[PDF] setContent HTML length:", htmlContent?.length ?? "NULL")
 
-    const executablePath = puppeteer.executablePath()
+    const executablePath = await puppeteer.executablePath()
 
     console.log("[PDF] Puppeteer executable path:", executablePath)
 

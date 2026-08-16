@@ -1,6 +1,7 @@
 import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router";
 import React from 'react'
+import GlobalQuickActions from "../../../components/GlobalQuickActions";
 
 const Protected = ({children}) => {
     const { loading,user } = useAuth()
@@ -14,7 +15,12 @@ const Protected = ({children}) => {
         return <Navigate to={'/login'} />
     }
     
-    return children
+    return (
+        <>
+            {children}
+            <GlobalQuickActions />
+        </>
+    )
 }
 
 export default Protected

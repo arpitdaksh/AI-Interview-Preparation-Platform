@@ -133,3 +133,110 @@ button {
         transform: translateY(0);
     }
 }
+
+/* Always-available navigation and account controls on protected pages. */
+.quick-actions {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid color-mix(in srgb, var(--border-strong) 82%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-1) 88%, transparent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    animation: quick-actions-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 34px;
+        padding: 0 11px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--text-2);
+        font-size: 0.78rem;
+        font-weight: 650;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+
+        &:hover {
+            background: var(--bg-hover);
+            color: var(--text-1);
+            transform: translateY(-1px);
+        }
+
+        &:active { transform: translateY(0) scale(0.96); }
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    &__logout:hover { color: #ff6b6b; }
+}
+
+.home-page,
+.interview-page,
+.platform-page,
+.chat-main {
+    animation: page-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dashboard-card,
+.platform-card,
+.notification-card,
+.q-card,
+.roadmap-day,
+.report-item {
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+@keyframes quick-actions-enter {
+    from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes page-enter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 560px) {
+    .quick-actions {
+        top: max(8px, env(safe-area-inset-top));
+        right: max(8px, env(safe-area-inset-right));
+        padding: 4px;
+
+        button {
+            width: 34px;
+            min-height: 34px;
+            justify-content: center;
+            padding: 0;
+        }
+
+        span { display: none; }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

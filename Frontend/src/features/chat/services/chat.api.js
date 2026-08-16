@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_BASE_URL } from "../../../config/api";
 
 const api = axios.create({
-    baseURL: "https://ai-interview-preparation-platform-fze2.onrender.com",
+    baseURL: API_BASE_URL,
     withCredentials: true,
 })
 
@@ -133,7 +134,7 @@ export const readSSEStream = async ({ url, options, onEvent, signal }) => {
  */
 export const streamSendMessage = async ({ chatId, message, signal, onEvent }) => {
     await readSSEStream({
-        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/messages`,
+        url: `${API_BASE_URL}/api/chat/${chatId}/messages`,
         options: {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -158,7 +159,7 @@ export const streamSendMessageWithFile = async ({ chatId, message, file, signal,
     }
 
     await readSSEStream({
-        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/messages`,
+        url: `${API_BASE_URL}/api/chat/${chatId}/messages`,
         options: {
             method: "POST",
             body: formData
@@ -174,7 +175,7 @@ export const streamSendMessageWithFile = async ({ chatId, message, file, signal,
  */
 export const streamRegenerateReply = async ({ chatId, signal, onEvent }) => {
     await readSSEStream({
-        url: `https://ai-interview-preparation-platform-fze2.onrender.com/api/chat/${chatId}/regenerate`,
+        url: `${API_BASE_URL}/api/chat/${chatId}/regenerate`,
         options: {
             method: "POST",
             headers: { "Content-Type": "application/json" },

@@ -19,13 +19,18 @@ app.use(cookieParser())
 //     credentials: true
 // }))
 
+const configuredOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean)
+
 app.use(cors({
     origin(origin, callback) {
-
         const allowedOrigins = [
             "http://localhost:5173",
             "http://127.0.0.1:5173",
-            "https://ai-interview-preparation-platform-kappa.vercel.app"
+            "https://ai-interview-preparation-platform-kappa.vercel.app",
+            ...configuredOrigins
         ];
 
         if (!origin || allowedOrigins.includes(origin)) {

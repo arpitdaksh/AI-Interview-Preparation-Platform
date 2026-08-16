@@ -42,3 +42,16 @@ main{
         text-decoration: none;
     }
 }
+
+@media (max-width: 420px) {
+    main {
+        padding: 1.25rem;
+        align-items: flex-start;
+        padding-top: 12vh;
+
+        .form-container {
+            min-width: 0;
+            width: 100%;
+        }
+    }
+}

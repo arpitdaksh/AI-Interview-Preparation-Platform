@@ -100,6 +100,20 @@ button {
     cursor: pointer;
 }
 
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+input,
+textarea,
+select,
+button {
+    max-width: 100%;
+}
+
 .highlight {
     color: var(--accent);
 }

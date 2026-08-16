@@ -251,3 +251,20 @@
     .error-banner { color: #b91c1c; }
 }
 
+@media (max-width: 640px) {
+    .mock-setup__card,
+    .mock-question-card,
+    .mock-answer-section,
+    .mock-evaluation,
+    .mock-summary { padding: 18px; border-radius: 12px; }
+
+    .type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .duration-select { max-width: none; }
+    .mock-timer { width: 100%; justify-content: center; }
+    .mock-question-card__text { font-size: 1.05rem; }
+    .mock-summary__actions,
+    .mock-actions { flex-direction: column; }
+    .mock-summary__actions .platform-btn,
+    .mock-actions .platform-btn { width: 100%; justify-content: center; }
+}
+

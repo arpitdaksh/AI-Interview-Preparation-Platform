@@ -60,3 +60,9 @@
     .analytics-empty { color: #94a3b8; }
     .progress-item__date { color: #64748b; }
 }
+
+@media (max-width: 640px) {
+    .analytics-grid { grid-template-columns: 1fr; gap: 12px; }
+    .analytics-section { padding: 16px; margin-bottom: 16px; }
+    .progress-item__label { gap: 8px; flex-wrap: wrap; }
+}

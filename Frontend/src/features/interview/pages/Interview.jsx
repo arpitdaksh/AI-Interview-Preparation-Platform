@@ -61,6 +61,7 @@ const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const { report, getReportById, loading, getResumePdf } = useInterview()
     const { interviewId } = useParams()
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (interviewId) {
@@ -109,7 +110,7 @@ const Interview = () => {
                         Download Resume
                     </button>
                     <button
-                        onClick={() => window.location.href = `/chat?interviewReportId=${interviewId}`}
+                        onClick={() => navigate(`/chat?interviewReportId=${interviewId}`)}
                         className='button secondary-button'
                         style={{ marginTop: "0.5rem" }}
                         type='button'

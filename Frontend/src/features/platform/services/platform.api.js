@@ -94,6 +94,15 @@ export const getResumeVersionById = async ({ resumeId }) => {
     return response.data
 }
 
+export const checkAtsMatch = async ({ resumeFile, jobDescription, jobTitle }) => {
+    const formData = new FormData()
+    formData.append("resume", resumeFile)
+    formData.append("jobDescription", jobDescription)
+    if (jobTitle) formData.append("jobTitle", jobTitle)
+    const response = await api.post("/api/ats/check", formData)
+    return response.data
+}
+
 export const deleteResumeVersion = async ({ resumeId }) => {
     const response = await api.delete(`/api/resumes/${resumeId}`)
     return response.data

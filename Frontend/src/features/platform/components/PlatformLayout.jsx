@@ -11,6 +11,7 @@ const NAV_LINKS = [
     { to: "/coding-interview", label: "Coding Interview", icon: "👨‍💻" },
     { to: "/roadmap", label: "Career Roadmap", icon: "🗺️" },
     { to: "/resumes", label: "Resumes", icon: "📄" },
+    { to: "/ats-checker", label: "ATS Checker", icon: "✅" },
     { to: "/analytics", label: "Analytics", icon: "📈" },
     { to: "/profile", label: "Profile", icon: "👤" },
 ]

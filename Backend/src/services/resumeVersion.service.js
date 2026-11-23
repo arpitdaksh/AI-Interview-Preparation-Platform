@@ -101,6 +101,7 @@ async function deleteResumeVersion({ userId, resumeId }) {
 }
 
 module.exports = {
+    extractResumeText,
     uploadResume,
     getUserResumes,
     getResumeVersion,

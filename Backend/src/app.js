@@ -56,6 +56,7 @@ const notificationRouter = require("./routes/notification.routes")
 const aiSuggestionRouter = require("./routes/aiSuggestion.routes")
 const exportRouter = require("./routes/export.routes")
 const userRouter = require("./routes/user.routes")
+const atsRouter = require("./routes/ats.routes")
 
 
 /* using all the routes here */
@@ -72,6 +73,7 @@ app.use("/api/notifications", notificationRouter)
 app.use("/api/ai-suggestions", aiSuggestionRouter)
 app.use("/api/export", exportRouter)
 app.use("/api/user", userRouter)
+app.use("/api/ats", atsRouter)
 
 
 /* global error handler - convert errors (incl. multer) into JSON responses */

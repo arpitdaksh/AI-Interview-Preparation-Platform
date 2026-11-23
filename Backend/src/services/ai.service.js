@@ -208,8 +208,34 @@ const RESUME_THEME = `<style>
     .resume-section p { overflow-wrap: anywhere; }
 </style>`
 
-function applyResumeTheme(html) {
+function getResumeRoleTitle({ title, jobDescription }) {
+    const rawTitle = String(title || "")
+    const titleLooksTracked = /^[A-Z\s]{10,}$/.test(rawTitle) || /^[A-Z0-9]{14,}$/.test(rawTitle)
+    let role = String(titleLooksTracked ? jobDescription : (title || jobDescription || "Target role"))
+        .split(/\r?\n/)[0]
+        .replace(/\s+candidate$/i, "")
+        .replace(/^(?:looking for|hiring|need|seeking)\s+/i, "")
+        .replace(/\s+(?:needed|wanted|position|role)$/i, "")
+        .slice(0, 100)
+        .trim()
+    if (role && (role === role.toLowerCase() || role === role.toUpperCase())) {
+        role = role.toLowerCase().replace(/\b[a-z]/g, character => character.toUpperCase())
+    }
+    return role
+}
+
+function applyResumeTheme(html, roleTitle) {
     let documentHtml = String(html || "").trim()
+    if (roleTitle) {
+        documentHtml = documentHtml.replace(
+            /(<h1\b[^>]*>[\s\S]*?<\/h1>\s*<p\b[^>]*>)([\s\S]*?)(<\/p>)/i,
+            (match, prefix, content, suffix) => {
+                const visibleText = content.replace(/<[^>]*>/g, "").trim()
+                const looksCorrupted = visibleText.length > 12 && !/[a-z]/.test(visibleText)
+                return looksCorrupted ? `${prefix}${escapeHtml(roleTitle)}${suffix}` : match
+            }
+        )
+    }
     if (!/<html[\s>]/i.test(documentHtml)) {
         return `<!doctype html><html lang="en"><head><meta charset="utf-8">${RESUME_THEME}</head><body>${documentHtml}</body></html>`
     }
@@ -281,18 +307,7 @@ function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
         flushBullets()
         return output.join("")
     }
-    const rawTitle = String(title || "")
-    const titleLooksTracked = /^[A-Z\s]{10,}$/.test(rawTitle)
-    const roleSource = roleLooksTracked || titleLooksTracked ? jobDescription : (title || role || jobDescription)
-    let targetRole = String(roleSource || "Target role")
-        .split(/\r?\n/)[0]
-        .replace(/\s+candidate$/i, "")
-        .replace(/^(?:looking for|hiring|need|seeking)\s+/i, "")
-        .replace(/\s+(?:needed|wanted|position|role)$/i, "")
-        .slice(0, 100)
-    if (targetRole && (targetRole === targetRole.toLowerCase() || targetRole === targetRole.toUpperCase())) {
-        targetRole = targetRole.toLowerCase().replace(/\b[a-z]/g, character => character.toUpperCase())
-    }
+    const targetRole = getResumeRoleTitle({ title: roleLooksTracked ? "" : title, jobDescription })
     const roleLabel = targetRole || role
     const body = sections.map(section => `
         <section class="resume-section">
@@ -509,7 +524,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
         const rawContent = response.choices[0]?.message?.content
         const jsonContent = extractJson(rawContent)
         if (typeof jsonContent.html === "string" && jsonContent.html.trim()) {
-            resumeHtml = applyResumeTheme(jsonContent.html)
+            resumeHtml = applyResumeTheme(jsonContent.html, getResumeRoleTitle({ title, jobDescription }))
         } else {
             throw new Error("AI response did not contain resume HTML.")
         }

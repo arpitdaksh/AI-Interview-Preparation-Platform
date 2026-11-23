@@ -110,6 +110,46 @@ $severity-low: #3fb950;
     }
 }
 
+.resume-length-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding: 0.8rem 0.65rem 0.55rem;
+    background: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.65rem;
+
+    label {
+        color: $text-primary;
+        font-size: 0.78rem;
+        font-weight: 650;
+    }
+
+    select {
+        width: 100%;
+        padding: 0.55rem 0.45rem;
+        color: $text-primary;
+        background: $bg-input;
+        border: 1px solid $border-color;
+        border-radius: 0.4rem;
+        font: inherit;
+        font-size: 0.76rem;
+    }
+
+    p {
+        margin: 0;
+        color: $text-muted;
+        font-size: 0.68rem;
+        line-height: 1.4;
+    }
+}
+
+.interview-nav .button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
 // ── Center Content ────────────────────────────────────────────────────────────
 .interview-content {
     flex: 1;

@@ -2,6 +2,7 @@ const OpenAI = require("openai");
 const { z } = require("zod")
 const { zodToJsonSchema } = require("zod-to-json-schema")
 const puppeteer = require("puppeteer")
+const pdfParse = require("pdf-parse")
 // const fs = require("fs")
 
 const ai = new OpenAI({
@@ -208,6 +209,29 @@ const RESUME_THEME = `<style>
     .resume-section p { overflow-wrap: anywhere; }
 </style>`
 
+const ONE_PAGE_RESUME_THEME = `<style>
+    @page { size: A4; margin: 8mm 10mm; }
+    body { font-size: 8.3pt !important; line-height: 1.2 !important; }
+    h1 { font-size: 20pt !important; margin-bottom: 2pt !important; }
+    h2 { font-size: 8.5pt !important; margin: 6pt 0 3pt !important; padding-bottom: 2pt !important; }
+    h3, h4 { font-size: 8.2pt !important; margin: 4pt 0 1pt !important; }
+    p { margin: 1pt 0 !important; }
+    ul, ol { margin: 1.5pt 0 2.5pt !important; padding-left: 12pt !important; }
+    li { margin: 0.5pt 0 !important; }
+    .resume-header { padding-bottom: 5pt; margin-bottom: 5pt; }
+    .resume-section, .resume-section h2 { margin-top: 4pt !important; }
+</style>`
+
+const TWO_PAGE_RESUME_THEME = `<style>
+    @page { size: A4; margin: 12mm 14mm; }
+</style>`
+
+function getResumeLengthTheme(pageLength) {
+    if (pageLength === "one-page") return ONE_PAGE_RESUME_THEME
+    if (pageLength === "two-pages") return TWO_PAGE_RESUME_THEME
+    return ""
+}
+
 function getResumeRoleTitle({ title, jobDescription }) {
     const rawTitle = String(title || "")
     const titleLooksTracked = /^[A-Z\s]{10,}$/.test(rawTitle) || /^[A-Z0-9]{14,}$/.test(rawTitle)
@@ -224,8 +248,9 @@ function getResumeRoleTitle({ title, jobDescription }) {
     return role
 }
 
-function applyResumeTheme(html, roleTitle) {
+function applyResumeTheme(html, roleTitle, pageLength) {
     let documentHtml = String(html || "").trim()
+    const resumeTheme = `${RESUME_THEME}${getResumeLengthTheme(pageLength)}`
     if (roleTitle) {
         documentHtml = documentHtml.replace(
             /(<h1\b[^>]*>[\s\S]*?<\/h1>\s*<p\b[^>]*>)([\s\S]*?)(<\/p>)/i,
@@ -237,16 +262,16 @@ function applyResumeTheme(html, roleTitle) {
         )
     }
     if (!/<html[\s>]/i.test(documentHtml)) {
-        return `<!doctype html><html lang="en"><head><meta charset="utf-8">${RESUME_THEME}</head><body>${documentHtml}</body></html>`
+        return `<!doctype html><html lang="en"><head><meta charset="utf-8">${resumeTheme}</head><body>${documentHtml}</body></html>`
     }
 
     if (/<\/head\s*>/i.test(documentHtml)) {
-        return documentHtml.replace(/<\/head\s*>/i, `${RESUME_THEME}</head>`)
+        return documentHtml.replace(/<\/head\s*>/i, `${resumeTheme}</head>`)
     }
-    return documentHtml.replace(/<html([^>]*)>/i, `<html$1><head><meta charset="utf-8">${RESUME_THEME}</head>`)
+    return documentHtml.replace(/<html([^>]*)>/i, `<html$1><head><meta charset="utf-8">${resumeTheme}</head>`)
 }
 
-function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
+function buildFallbackResumeHtml({ sourceText, jobDescription, title, pageLength }) {
     const normalizeLine = line => line
         .replace(/\b(?:[A-Z]\s+){2,}[A-Z]\b/g, value => value.replace(/\s+/g, ""))
         .replace(/\b(\d)\s+(?=\d\b)/g, "$1")
@@ -316,7 +341,8 @@ function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
         </section>
     `).join("")
 
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8">${RESUME_THEME}</head><body>
+    const resumeTheme = `${RESUME_THEME}${getResumeLengthTheme(pageLength)}`
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8">${resumeTheme}</head><body>
         <main class="resume-page">
             <header class="resume-header">
                 <p class="resume-kicker">Professional Resume</p>
@@ -436,7 +462,17 @@ Return ONLY valid JSON in this exact format:
 //         await browser.close()
 //     }
 // }
-async function generatePdfFromHtml(htmlContent) {
+async function getPdfPageCount(pdfBuffer) {
+    const parser = new pdfParse.PDFParse({ data: pdfBuffer })
+    try {
+        const info = await parser.getInfo()
+        return info.total
+    } finally {
+        await parser.destroy()
+    }
+}
+
+async function generatePdfFromHtml(htmlContent, { pageLength = "two-pages" } = {}) {
     console.log(
         "[PDF] Starting PDF generation. HTML length:",
         htmlContent?.length ?? "NULL"
@@ -461,38 +497,50 @@ async function generatePdfFromHtml(htmlContent) {
 
         console.log("[PDF] setContent OK");
 
-        const pdfResult = await page.pdf({
+        const pageLimit = pageLength === "one-page" ? 1 : pageLength === "two-pages" ? 2 : null
+        const margins = pageLength === "one-page"
+            ? { top: "8mm", bottom: "8mm", left: "10mm", right: "10mm" }
+            : { top: "12mm", bottom: "12mm", left: "14mm", right: "14mm" }
+        const pdfOptions = {
             format: "A4",
             printBackground: true,
-            margin: {
-                top: "20mm",
-                bottom: "20mm",
-                left: "15mm",
-                right: "15mm"
+            margin: margins
+        }
+        let scale = 1
+        let pdfBuffer
+        let pageCount = 0
+
+        for (let attempt = 0; attempt < 16; attempt += 1) {
+            const pdfResult = await page.pdf({
+                ...pdfOptions,
+                ...(pageLimit ? { scale } : {})
+            })
+            pdfBuffer = Buffer.from(pdfResult)
+
+            if (pdfBuffer.length === 0) {
+                throw new Error("Puppeteer page.pdf() returned an empty buffer.")
             }
-        });
 
-        const pdfBuffer = Buffer.from(pdfResult);
-
-        console.log(
-            "[PDF] page.pdf() returned buffer length:",
-            pdfBuffer.length
-        );
-
-        if (pdfBuffer.length === 0) {
-            throw new Error(
-                "Puppeteer page.pdf() returned an empty buffer."
-            );
+            if (!pageLimit) break
+            pageCount = await getPdfPageCount(pdfBuffer)
+            if (pageCount <= pageLimit) break
+            if (scale <= 0.1) break
+            scale = Math.max(0.1, scale * 0.85)
         }
 
-        return pdfBuffer;
+        if (pageLimit && pageCount > pageLimit) {
+            throw new Error(`Could not fit the resume within ${pageLimit} page${pageLimit > 1 ? "s" : ""}. Shorten the source content or choose a longer layout.`)
+        }
+
+        console.log("[PDF] page.pdf() returned buffer length:", pdfBuffer.length, "pages:", pageCount || "flexible")
+        return pdfBuffer
 
     } finally {
         await browser.close();
     }
 }
 
-async function generateResumePdf({ resume, selfDescription, jobDescription, title }) {
+async function generateResumePdf({ resume, selfDescription, jobDescription, title, pageLength = "two-pages" }) {
 
     const resumePdfSchema = z.object({
         html: z.string().describe("The HTML content of the resume which can be converted to PDF using any library like puppeteer")
@@ -503,6 +551,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
                         Self Description: ${selfDescription}
                         Job Description: ${jobDescription}
         Target role title: ${title || "Not specified"}
+        Page length preference: ${pageLength}
 
                         the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
                         The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
@@ -510,7 +559,11 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
                         The content of resume should be not sound like it's generated by AI and should be as close as possible to a real human-written resume.
                         you can highlight the content using some colors or different font styles but the overall design should be simple and professional.
                         The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
-                        The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
+                        ${pageLength === "one-page"
+                            ? "Fit the resume on exactly one A4 page. Prioritize the most relevant facts, combine repetitive points, and use concise bullets. Do not spill onto a second page."
+                            : pageLength === "two-pages"
+                                ? "Keep the resume to no more than two A4 pages. Prefer one page when the relevant content fits comfortably; never add filler to use space."
+                                : "Use as many pages as the candidate's relevant experience needs. Keep every page readable and avoid filler."}
                     `
 
     let resumeHtml
@@ -524,7 +577,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
         const rawContent = response.choices[0]?.message?.content
         const jsonContent = extractJson(rawContent)
         if (typeof jsonContent.html === "string" && jsonContent.html.trim()) {
-            resumeHtml = applyResumeTheme(jsonContent.html, getResumeRoleTitle({ title, jobDescription }))
+            resumeHtml = applyResumeTheme(jsonContent.html, getResumeRoleTitle({ title, jobDescription }), pageLength)
         } else {
             throw new Error("AI response did not contain resume HTML.")
         }
@@ -533,10 +586,10 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
         // or its free model returns an invalid response. Use only supplied facts.
         console.error("[AI] Resume generation failed; using source-text fallback:", error.message)
         const sourceText = resume || selfDescription || "No resume or profile details were provided."
-        resumeHtml = buildFallbackResumeHtml({ sourceText, jobDescription, title })
+        resumeHtml = buildFallbackResumeHtml({ sourceText, jobDescription, title, pageLength })
     }
 
-    const pdfBuffer = await generatePdfFromHtml(resumeHtml)
+    const pdfBuffer = await generatePdfFromHtml(resumeHtml, { pageLength })
 
     return pdfBuffer
 

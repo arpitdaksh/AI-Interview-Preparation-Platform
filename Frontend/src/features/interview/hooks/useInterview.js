@@ -58,10 +58,9 @@ export const useInterview = () => {
         }
     }
 
-    const getResumePdf = async (interviewReportId) => {
-        setLoading(true)
+    const getResumePdf = async (interviewReportId, pageLength = "two-pages") => {
         try {
-            const blob = await generateResumePdf({ interviewReportId })
+            const blob = await generateResumePdf({ interviewReportId, pageLength })
 
             // If the server returned an error as a JSON blob, surface it instead of downloading a corrupt file
             if (blob?.type?.includes("application/json")) {
@@ -103,8 +102,6 @@ export const useInterview = () => {
                 message = responseBody.message
             }
             alert(message)
-        } finally {
-            setLoading(false)
         }
     }
 

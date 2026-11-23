@@ -136,6 +136,10 @@ async function getAllInterviewReportsController(req, res) {
 async function generateResumePdfController(req, res) {
     try {
         const { interviewReportId } = req.params
+        const allowedPageLengths = ["one-page", "two-pages", "flexible"]
+        const pageLength = allowedPageLengths.includes(req.body?.pageLength)
+            ? req.body.pageLength
+            : "two-pages"
         console.log("[Controller] generateResumePdfController called. interviewReportId:", interviewReportId)
 
         const interviewReport = await interviewReportModel.findById(interviewReportId)
@@ -150,7 +154,7 @@ async function generateResumePdfController(req, res) {
         const { resume, jobDescription, selfDescription, title } = interviewReport
         console.log("[Controller] resume.length:", resume?.length ?? 0, "jobDescription.length:", jobDescription?.length ?? 0, "selfDescription.length:", selfDescription?.length ?? 0)
 
-        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription, title })
+        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription, title, pageLength })
         console.log("[Controller] generateResumePdf returned buffer length:", pdfBuffer.length)
 
         if (!pdfBuffer || pdfBuffer.length === 0) {

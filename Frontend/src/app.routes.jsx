@@ -17,6 +17,7 @@ const ResumeVersionsPage = lazy(() => import("./features/platform/pages/ResumeVe
 const AnalyticsPage = lazy(() => import("./features/platform/pages/AnalyticsPage"))
 const ProfilePage = lazy(() => import("./features/platform/pages/ProfilePage"))
 const ATSCheckerPage = lazy(() => import("./features/platform/pages/ATSCheckerPage"))
+const PricingPage = lazy(() => import("./features/platform/pages/PricingPage"))
 
 const platformFallback = <div className="platform-loading">Loading...</div>
 const pageFallback = <PageSkeleton />
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
             {
                 path: "ats-checker",
                 element: withPlatform(<ATSCheckerPage />)
+            },
+            {
+                path: "pricing",
+                element: withPlatform(<PricingPage />)
             },
             {
                 path: "analytics",

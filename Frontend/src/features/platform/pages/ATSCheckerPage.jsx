@@ -1,5 +1,6 @@
-import { useState } from "react"
-import { checkAtsMatch } from "../services/platform.api"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+import { checkAtsMatch, getBillingStatus } from "../services/platform.api"
 import "../style/platform.scss"
 import "../style/ats-checker.scss"
 
@@ -8,12 +9,19 @@ const ATSCheckerPage = () => {
     const [jobTitle, setJobTitle] = useState("")
     const [jobDescription, setJobDescription] = useState("")
     const [analysis, setAnalysis] = useState(null)
+    const [billingStatus, setBillingStatus] = useState(null)
     const [checking, setChecking] = useState(false)
     const [error, setError] = useState("")
+    const [limitReached, setLimitReached] = useState(false)
+
+    useEffect(() => {
+        getBillingStatus().then(setBillingStatus).catch(() => {})
+    }, [])
 
     const handleSubmit = async event => {
         event.preventDefault()
         setError("")
+        setLimitReached(false)
         setAnalysis(null)
         if (!resumeFile) {
             setError("Choose your resume PDF or DOCX file first.")
@@ -32,7 +40,9 @@ const ATSCheckerPage = () => {
                 jobTitle: jobTitle.trim()
             })
             setAnalysis(result.analysis)
+            if (result.status) setBillingStatus(result.status)
         } catch (requestError) {
+            if (requestError?.response?.data?.code === "ATS_LIMIT_REACHED") setLimitReached(true)
             setError(requestError?.response?.data?.message || requestError?.message || "Resume check failed. Please try again.")
         } finally {
             setChecking(false)
@@ -57,6 +67,13 @@ const ATSCheckerPage = () => {
                     </div>
                     <span className="ats-private-badge">Not saved to profile</span>
                 </div>
+
+                {billingStatus && !billingStatus.isPro && (
+                    <div className="ats-usage-note">
+                        {billingStatus.usage.remaining} of {billingStatus.usage.limit} free checks left this month.
+                        <Link to="/pricing"> View plans</Link>
+                    </div>
+                )}
 
                 <label className="ats-field">
                     <span>Resume file <small>PDF or DOCX · max 5 MB</small></span>
@@ -97,6 +114,7 @@ const ATSCheckerPage = () => {
                 </label>
 
                 {error && <div className="error-banner" role="alert">{error}</div>}
+                {limitReached && <Link className="platform-btn platform-btn--primary ats-upgrade-link" to="/pricing">⚡ Upgrade to Pro for unlimited checks</Link>}
 
                 <div className="ats-form__footer">
                     <p>AI feedback is a guide, not a guarantee of how an employer’s ATS will score your application.</p>

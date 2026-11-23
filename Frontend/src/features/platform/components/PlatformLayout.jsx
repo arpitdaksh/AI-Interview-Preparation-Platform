@@ -12,6 +12,7 @@ const NAV_LINKS = [
     { to: "/roadmap", label: "Career Roadmap", icon: "🗺️" },
     { to: "/resumes", label: "Resumes", icon: "📄" },
     { to: "/ats-checker", label: "ATS Checker", icon: "✅" },
+    { to: "/pricing", label: "Plans & Upgrade", icon: "⚡" },
     { to: "/analytics", label: "Analytics", icon: "📈" },
     { to: "/profile", label: "Profile", icon: "👤" },
 ]

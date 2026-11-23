@@ -103,6 +103,22 @@ export const checkAtsMatch = async ({ resumeFile, jobDescription, jobTitle }) =>
     return response.data
 }
 
+// ── Billing ────────────────────────────────────────────────────────────────
+export const getBillingStatus = async () => {
+    const response = await api.get("/api/billing/status")
+    return response.data.status
+}
+
+export const createProOrder = async () => {
+    const response = await api.post("/api/billing/orders/pro")
+    return response.data.order
+}
+
+export const verifyProPayment = async payment => {
+    const response = await api.post("/api/billing/verify", payment)
+    return response.data.status
+}
+
 export const deleteResumeVersion = async ({ resumeId }) => {
     const response = await api.delete(`/api/resumes/${resumeId}`)
     return response.data

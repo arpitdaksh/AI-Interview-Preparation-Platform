@@ -4,7 +4,13 @@ const cors = require("cors")
 
 const app = express()
 
-app.use(express.json())
+app.use(express.json({
+    verify(req, res, buffer) {
+        if (req.originalUrl.startsWith("/api/billing/webhook")) {
+            req.rawBody = Buffer.from(buffer)
+        }
+    }
+}))
 app.use(cookieParser())
 // app.use(cors({
 //     origin(origin, callback) {
@@ -57,6 +63,7 @@ const aiSuggestionRouter = require("./routes/aiSuggestion.routes")
 const exportRouter = require("./routes/export.routes")
 const userRouter = require("./routes/user.routes")
 const atsRouter = require("./routes/ats.routes")
+const billingRouter = require("./routes/billing.routes")
 
 
 /* using all the routes here */
@@ -74,6 +81,7 @@ app.use("/api/ai-suggestions", aiSuggestionRouter)
 app.use("/api/export", exportRouter)
 app.use("/api/user", userRouter)
 app.use("/api/ats", atsRouter)
+app.use("/api/billing", billingRouter)
 
 
 /* global error handler - convert errors (incl. multer) into JSON responses */

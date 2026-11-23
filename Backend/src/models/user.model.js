@@ -30,6 +30,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: [ "light", "dark" ],
         default: "light"
+    },
+    proExpiresAt: {
+        type: Date,
+        default: null
+    },
+    proGrantOrderIds: {
+        type: [ String ],
+        default: []
     }
 })
 

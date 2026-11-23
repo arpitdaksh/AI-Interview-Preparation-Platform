@@ -58,6 +58,21 @@
         font-size: 0.75rem;
     }
 
+    .ats-usage-note {
+        padding: 10px 12px;
+        border: 1px solid var(--ats-border);
+        border-radius: 9px;
+        color: var(--ats-muted);
+        font-size: 0.82rem;
+
+        a { margin-left: 4px; color: #818cf8; font-weight: 650; }
+    }
+
+    .ats-upgrade-link {
+        justify-self: start;
+        text-decoration: none;
+    }
+
     .ats-field {
         display: grid;
         gap: 8px;

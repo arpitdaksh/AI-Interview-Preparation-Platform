@@ -507,13 +507,23 @@ async function generatePdfFromHtml(htmlContent, { pageLength = "two-pages" } = {
             margin: margins
         }
         let scale = 1
+        let layoutZoom = 1
         let pdfBuffer
         let pageCount = 0
 
-        for (let attempt = 0; attempt < 16; attempt += 1) {
+        for (let attempt = 0; attempt < 24; attempt += 1) {
+            // Chromium's PDF scale can shrink painted content without changing
+            // the pagination in some generated HTML resumes. CSS zoom changes
+            // the layout itself, so use it for the strict one-page option.
+            if (pageLength === "one-page") {
+                await page.evaluate(zoom => {
+                    document.body.style.zoom = String(zoom)
+                }, layoutZoom)
+            }
+
             const pdfResult = await page.pdf({
                 ...pdfOptions,
-                ...(pageLimit ? { scale } : {})
+                ...(pageLimit && pageLength !== "one-page" ? { scale } : {})
             })
             pdfBuffer = Buffer.from(pdfResult)
 
@@ -524,8 +534,13 @@ async function generatePdfFromHtml(htmlContent, { pageLength = "two-pages" } = {
             if (!pageLimit) break
             pageCount = await getPdfPageCount(pdfBuffer)
             if (pageCount <= pageLimit) break
-            if (scale <= 0.1) break
-            scale = Math.max(0.1, scale * 0.85)
+            if (pageLength === "one-page") {
+                if (layoutZoom <= 0.1) break
+                layoutZoom = Math.max(0.1, layoutZoom * 0.85)
+            } else {
+                if (scale <= 0.1) break
+                scale = Math.max(0.1, scale * 0.85)
+            }
         }
 
         if (pageLimit && pageCount > pageLimit) {

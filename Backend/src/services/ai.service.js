@@ -254,7 +254,9 @@ async function generatePdfFromHtml(htmlContent) {
         const page = await browser.newPage();
 
         await page.setContent(htmlContent, {
-            waitUntil: "networkidle0"
+            // Generated resume HTML may reference external assets that keep
+            // networkidle0 from ever settling on hosted environments.
+            waitUntil: "domcontentloaded"
         });
 
         console.log("[PDF] setContent OK");

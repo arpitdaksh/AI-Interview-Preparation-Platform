@@ -54,7 +54,9 @@ async function generatePdfFromHtml(htmlContent) {
 
     try {
         const page = await browser.newPage()
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" })
+        // Wait for the document itself; external resources in generated HTML
+        // should not hold a PDF export open until Puppeteer's network timeout.
+        await page.setContent(htmlContent, { waitUntil: "domcontentloaded" })
 
         const pdfResult = await page.pdf({
             format: "A4",

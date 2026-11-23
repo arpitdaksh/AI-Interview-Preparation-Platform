@@ -53,9 +53,9 @@ const ATSCheckerPage = () => {
                 <div className="ats-form__heading">
                     <div>
                         <h2>Check your job match</h2>
-                        <p>Your resume is analyzed for this request and is not added to your saved resume versions.</p>
+                        <p>We send extracted resume text to our AI provider for this check. The uploaded file is not saved to your account.</p>
                     </div>
-                    <span className="ats-private-badge">🔒 Private analysis</span>
+                    <span className="ats-private-badge">Not saved to profile</span>
                 </div>
 
                 <label className="ats-field">

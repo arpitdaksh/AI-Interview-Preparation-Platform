@@ -147,10 +147,10 @@ async function generateResumePdfController(req, res) {
             })
         }
 
-        const { resume, jobDescription, selfDescription } = interviewReport
+        const { resume, jobDescription, selfDescription, title } = interviewReport
         console.log("[Controller] resume.length:", resume?.length ?? 0, "jobDescription.length:", jobDescription?.length ?? 0, "selfDescription.length:", selfDescription?.length ?? 0)
 
-        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription })
+        const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription, title })
         console.log("[Controller] generateResumePdf returned buffer length:", pdfBuffer.length)
 
         if (!pdfBuffer || pdfBuffer.length === 0) {

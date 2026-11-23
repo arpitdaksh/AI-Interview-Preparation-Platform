@@ -220,14 +220,17 @@ function applyResumeTheme(html) {
     return documentHtml.replace(/<html([^>]*)>/i, `<html$1><head><meta charset="utf-8">${RESUME_THEME}</head>`)
 }
 
-function buildFallbackResumeHtml({ sourceText, jobDescription }) {
+function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
     const normalizeLine = line => line
         .replace(/\b(?:[A-Z]\s+){2,}[A-Z]\b/g, value => value.replace(/\s+/g, ""))
+        .replace(/\b(\d)\s+(?=\d\b)/g, "$1")
+        .replace(/(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)(?=\d)/gi, "$1 ")
+        .replace(/(\d{4})\s*[—–-]\s*(PRESENT|CURRENT|TODAY)/gi, "$1 - $2")
         .trim()
     const rawLines = String(sourceText || "")
         .split(/\r?\n/)
         .map(line => line.trim())
-        .filter(Boolean)
+        .filter(line => line && !/^(?:[•●▪*-]\s*)?[-–—]*\s*\d+\s+of\s+\d+\s*[-–—]*$/i.test(line))
     const lines = rawLines
         .map(normalizeLine)
 
@@ -235,6 +238,7 @@ function buildFallbackResumeHtml({ sourceText, jobDescription }) {
     const secondLine = lines[0] || ""
     const role = secondLine && secondLine.length < 100 ? lines.shift() : ""
     const roleWasLetterSpaced = /^[A-Z](?:\s+[A-Z]){5,}$/.test(rawLines[1] || "")
+    const roleWasCompressed = /^[A-Z0-9]{14,}$/.test(role)
     const sectionAliases = new Map([
         ["summary", "Profile"], ["professional summary", "Profile"], ["profile", "Profile"], ["about", "Profile"],
         ["employment history", "Experience"], ["work experience", "Experience"], ["professional experience", "Experience"], ["experience", "Experience"],
@@ -277,8 +281,11 @@ function buildFallbackResumeHtml({ sourceText, jobDescription }) {
         flushBullets()
         return output.join("")
     }
-    const targetRole = String(jobDescription || "Target role").split(/\r?\n/)[0].slice(0, 100)
-    const roleLabel = roleWasLetterSpaced ? (targetRole || role) : (role || targetRole)
+    const targetRole = String(title || jobDescription || "Target role")
+        .split(/\r?\n/)[0]
+        .replace(/\s+candidate$/i, "")
+        .slice(0, 100)
+    const roleLabel = roleWasLetterSpaced || roleWasCompressed ? (targetRole || role) : (role || targetRole)
     const body = sections.map(section => `
         <section class="resume-section">
             <h2>${escapeHtml(section.title)}</h2>
@@ -462,7 +469,7 @@ async function generatePdfFromHtml(htmlContent) {
     }
 }
 
-async function generateResumePdf({ resume, selfDescription, jobDescription }) {
+async function generateResumePdf({ resume, selfDescription, jobDescription, title }) {
 
     const resumePdfSchema = z.object({
         html: z.string().describe("The HTML content of the resume which can be converted to PDF using any library like puppeteer")
@@ -472,6 +479,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         Resume: ${resume}
                         Self Description: ${selfDescription}
                         Job Description: ${jobDescription}
+        Target role title: ${title || "Not specified"}
 
                         the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
                         The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
@@ -502,7 +510,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
         // or its free model returns an invalid response. Use only supplied facts.
         console.error("[AI] Resume generation failed; using source-text fallback:", error.message)
         const sourceText = resume || selfDescription || "No resume or profile details were provided."
-        resumeHtml = buildFallbackResumeHtml({ sourceText, jobDescription })
+        resumeHtml = buildFallbackResumeHtml({ sourceText, jobDescription, title })
     }
 
     const pdfBuffer = await generatePdfFromHtml(resumeHtml)

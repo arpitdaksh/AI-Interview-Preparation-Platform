@@ -8,6 +8,24 @@ An AI-powered platform for preparing for technical interviews, mock interviews, 
 
 The frontend is deployed on Vercel and connects to the API hosted on Render.
 
+### Free hosting for an early launch
+
+The current site is already online. The Vercel Hobby plan is for personal, non-commercial projects, so move the frontend to a free static host before taking paid customers. Cloudflare Pages supports Git-based builds; this repository includes `Frontend/public/_redirects` for client-side routes.
+
+To create the free Cloudflare Pages deployment, connect this GitHub repository in the Cloudflare dashboard and use:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Root directory | `Frontend` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Environment variable | `VITE_API_BASE_URL=https://ai-interview-preparation-platform-fze2.onrender.com` |
+
+Cloudflare needs you to sign in and authorize its GitHub integration before it can create the deployment. The existing Render API is also on a free instance: it sleeps after 15 minutes without traffic and can take about a minute to wake up. Render recommends its free instances for previews and hobby projects, not production. That is okay for an initial no-cost demo, but upgrade the API before depending on it for paying customers.
+
+Hosting can be free; payment processing is not completely free. Razorpay currently lists no setup or annual maintenance fee, but charges a transaction fee plus GST on successful payments. Keep this cost in mind when choosing the Pro price.
+
 ## Run locally
 
 ### Prerequisites

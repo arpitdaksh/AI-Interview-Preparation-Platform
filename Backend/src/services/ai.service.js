@@ -238,7 +238,7 @@ function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
     const secondLine = lines[0] || ""
     const role = secondLine && secondLine.length < 100 ? lines.shift() : ""
     const roleWasLetterSpaced = /^[A-Z](?:\s+[A-Z]){5,}$/.test(rawLines[1] || "")
-    const roleWasCompressed = /^[A-Z0-9]{14,}$/.test(role)
+    const roleLooksTracked = roleWasLetterSpaced || /^[A-Z\s]{10,}$/.test(role)
     const sectionAliases = new Map([
         ["summary", "Profile"], ["professional summary", "Profile"], ["profile", "Profile"], ["about", "Profile"],
         ["employment history", "Experience"], ["work experience", "Experience"], ["professional experience", "Experience"], ["experience", "Experience"],
@@ -281,11 +281,19 @@ function buildFallbackResumeHtml({ sourceText, jobDescription, title }) {
         flushBullets()
         return output.join("")
     }
-    const targetRole = String(title || jobDescription || "Target role")
+    const rawTitle = String(title || "")
+    const titleLooksTracked = /^[A-Z\s]{10,}$/.test(rawTitle)
+    const roleSource = roleLooksTracked || titleLooksTracked ? jobDescription : (title || role || jobDescription)
+    let targetRole = String(roleSource || "Target role")
         .split(/\r?\n/)[0]
         .replace(/\s+candidate$/i, "")
+        .replace(/^(?:looking for|hiring|need|seeking)\s+/i, "")
+        .replace(/\s+(?:needed|wanted|position|role)$/i, "")
         .slice(0, 100)
-    const roleLabel = roleWasLetterSpaced || roleWasCompressed ? (targetRole || role) : (role || targetRole)
+    if (targetRole && (targetRole === targetRole.toLowerCase() || targetRole === targetRole.toUpperCase())) {
+        targetRole = targetRole.toLowerCase().replace(/\b[a-z]/g, character => character.toUpperCase())
+    }
+    const roleLabel = targetRole || role
     const body = sections.map(section => `
         <section class="resume-section">
             <h2>${escapeHtml(section.title)}</h2>

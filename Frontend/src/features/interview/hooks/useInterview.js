@@ -92,7 +92,17 @@ export const useInterview = () => {
             }, 1000)
         } catch (error) {
             console.error(error)
-            alert(error?.message || "Failed to download resume. Please try again.")
+            let message = error?.message || "Failed to download resume. Please try again."
+            const responseBody = error?.response?.data
+            if (responseBody instanceof Blob) {
+                try {
+                    const payload = JSON.parse(await responseBody.text())
+                    message = payload?.message || message
+                } catch { /* keep the original request error */ }
+            } else if (responseBody?.message) {
+                message = responseBody.message
+            }
+            alert(message)
         } finally {
             setLoading(false)
         }

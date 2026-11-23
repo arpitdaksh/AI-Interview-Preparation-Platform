@@ -43,7 +43,13 @@ function escapeHtml(str) {
  */
 async function generatePdfFromHtml(htmlContent) {
     const executablePath = getBrowserExecutable()
-    const launchOptions = executablePath ? { executablePath } : {}
+    const launchOptions = {
+        ...(executablePath ? { executablePath } : {}),
+        headless: true,
+        // Hosted Linux containers commonly run as root and do not provide the
+        // Chromium sandbox required by Puppeteer unless these flags are set.
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    }
     const browser = await puppeteer.launch(launchOptions)
 
     try {
@@ -52,6 +58,7 @@ async function generatePdfFromHtml(htmlContent) {
 
         const pdfResult = await page.pdf({
             format: "A4",
+            printBackground: true,
             margin: {
                 top: "20mm",
                 bottom: "20mm",

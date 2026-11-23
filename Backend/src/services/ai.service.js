@@ -240,99 +240,53 @@ async function generatePdfFromHtml(htmlContent) {
     console.log(
         "[PDF] Starting PDF generation. HTML length:",
         htmlContent?.length ?? "NULL"
-    )
-
-    if (!htmlContent) {
-        throw new Error("HTML content is empty.")
-    }
-
-    // Puppeteer executable path
-    const executablePath = await puppeteer.executablePath()
-
-    console.log(
-        "[PDF] Puppeteer executable path:",
-        executablePath
-    )
-
-    if (!executablePath) {
-        throw new Error(
-            "Puppeteer could not find Chrome executable."
-        )
-    }
+    );
 
     const browser = await puppeteer.launch({
-        executablePath: executablePath,
-
-        // Required for Render/Linux environment
         headless: true,
-
         args: [
             "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu"
+            "--disable-setuid-sandbox"
         ]
-    })
-
-    console.log("[PDF] Browser launched successfully")
+    });
 
     try {
-        const page = await browser.newPage()
-
-        console.log("[PDF] New page created")
+        const page = await browser.newPage();
 
         await page.setContent(htmlContent, {
             waitUntil: "networkidle0"
-        })
+        });
 
-        console.log("[PDF] HTML loaded successfully")
+        console.log("[PDF] setContent OK");
 
         const pdfResult = await page.pdf({
             format: "A4",
-
             printBackground: true,
-
             margin: {
                 top: "20mm",
                 bottom: "20mm",
                 left: "15mm",
                 right: "15mm"
             }
-        })
+        });
+
+        const pdfBuffer = Buffer.from(pdfResult);
 
         console.log(
-            "[PDF] page.pdf() completed. Buffer size:",
-            pdfResult?.length ?? "NULL"
-        )
+            "[PDF] page.pdf() returned buffer length:",
+            pdfBuffer.length
+        );
 
-        if (!pdfResult || pdfResult.length === 0) {
+        if (pdfBuffer.length === 0) {
             throw new Error(
-                "Puppeteer page.pdf() returned an empty PDF buffer."
-            )
+                "Puppeteer page.pdf() returned an empty buffer."
+            );
         }
 
-        const pdfBuffer = Buffer.from(pdfResult)
-
-        console.log(
-            "[PDF] PDF buffer created successfully:",
-            pdfBuffer.length,
-            "bytes"
-        )
-
-        return pdfBuffer
-
-    } catch (error) {
-        console.error(
-            "[PDF] Error while generating PDF:",
-            error
-        )
-
-        throw error
+        return pdfBuffer;
 
     } finally {
-        await browser.close()
-
-        console.log("[PDF] Browser closed")
+        await browser.close();
     }
 }
 
@@ -355,29 +309,47 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
                     `
 
-    const response = await ai.chat.completions.create({
-        model: "openai/gpt-oss-20b:free",
-        messages: [
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        temperature: 0.7
-    })
+    let resumeHtml
+    try {
+        const response = await ai.chat.completions.create({
+            model: "openai/gpt-oss-20b:free",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7
+        })
 
-    const rawContent = response.choices[0]?.message?.content
-    console.log("[AI] generateResumePdf raw response length:", rawContent?.length ?? "NULL")
-
-    const jsonContent = extractJson(rawContent)
-    console.log("[AI] parsed jsonContent keys:", jsonContent ? Object.keys(jsonContent) : null)
-
-    // Validate that the AI actually returned HTML content
-    if (!jsonContent.html || typeof jsonContent.html !== "string" || jsonContent.html.trim().length === 0) {
-        throw new Error("AI response did not contain a valid 'html' field with resume content.")
+        const rawContent = response.choices[0]?.message?.content
+        const jsonContent = extractJson(rawContent)
+        if (typeof jsonContent.html === "string" && jsonContent.html.trim()) {
+            resumeHtml = jsonContent.html
+        } else {
+            throw new Error("AI response did not contain resume HTML.")
+        }
+    } catch (error) {
+        // Resume downloads should still work when the AI provider is unavailable
+        // or its free model returns an invalid response. Use only supplied facts.
+        console.error("[AI] Resume generation failed; using source-text fallback:", error.message)
+        const sourceText = resume || selfDescription || "No resume or profile details were provided."
+        const safeText = String(sourceText)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;")
+        const role = String(jobDescription || "Target Role")
+            .split(/\r?\n/)[0]
+            .slice(0, 120)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+        resumeHtml = `<!doctype html><html><head><meta charset="utf-8"><style>
+            body{font:12pt Arial,sans-serif;color:#1f2937;line-height:1.55;margin:36px}
+            h1{color:#3730a3;margin-bottom:4px}h2{font-size:15pt;color:#3730a3;border-bottom:1px solid #c7d2fe;padding-bottom:5px}
+            .role{color:#64748b;margin-top:0}pre{font:11pt Arial,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+        </style></head><body><h1>Professional Resume</h1><p class="role">Prepared for: ${role}</p>
+        <h2>Candidate Profile</h2><pre>${safeText}</pre></body></html>`
     }
 
-    const pdfBuffer = await generatePdfFromHtml(jsonContent.html)
+    const pdfBuffer = await generatePdfFromHtml(resumeHtml)
 
     return pdfBuffer
 

@@ -5,6 +5,14 @@ const { extractFileText } = require("./fileExtract.service")
 
 // OpenRouter model used for chat completions. Overridable via env var.
 const CHAT_MODEL = process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-20b:free"
+const CHAT_FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free"
+
+// Free model slugs can be retired, rate-limited, or temporarily unavailable.
+// OpenRouter will try the router fallback automatically when the primary fails.
+function getChatModelRouting() {
+    const models = [...new Set([CHAT_MODEL, CHAT_FALLBACK_MODEL].filter(Boolean))]
+    return { model: models[0], extra_body: { models } }
+}
 
 const MAX_HISTORY_MESSAGES = 20
 const SUGGESTED_QUESTIONS_COUNT = 3
@@ -196,7 +204,7 @@ Latest assistant reply:
 ${aiReply}`
 
     const response = await ai.chat.completions.create({
-        model: CHAT_MODEL,
+        ...getChatModelRouting(),
         messages: [
             {
                 role: "system",
@@ -247,7 +255,7 @@ async function autoGenerateTitle(message) {
 
     try {
         const response = await ai.chat.completions.create({
-            model: CHAT_MODEL,
+            ...getChatModelRouting(),
             messages: [
                 {
                     role: "system",
@@ -421,7 +429,7 @@ async function sendMessage({ userId, chatId, message }) {
     const history = chat.messages.slice(-MAX_HISTORY_MESSAGES)
 
     const response = await ai.chat.completions.create({
-        model: CHAT_MODEL,
+        ...getChatModelRouting(),
         messages: buildMessagesPayload({ systemPrompt, history, message }),
         temperature: 0.7
     })
@@ -491,7 +499,7 @@ async function streamChatReply({ req, res, userId, chatId, message, file }) {
     }
 
     const stream = await ai.chat.completions.create({
-        model: CHAT_MODEL,
+        ...getChatModelRouting(),
         messages: buildMessagesPayload({ systemPrompt, history, message: userMessage }),
         temperature: 0.7,
         stream: true
@@ -603,7 +611,7 @@ async function regenerateReply({ req, res, userId, chatId }) {
     const history = chat.messages.slice(-MAX_HISTORY_MESSAGES)
 
     const stream = await ai.chat.completions.create({
-        model: CHAT_MODEL,
+        ...getChatModelRouting(),
         messages: buildMessagesPayload({ systemPrompt, history, message: lastUserMessage }),
         temperature: 0.7,
         stream: true

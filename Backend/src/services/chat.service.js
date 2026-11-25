@@ -7,10 +7,10 @@ const { extractFileText } = require("./fileExtract.service")
 const CHAT_MODEL = process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-20b:free"
 const CHAT_FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free"
 
-// Free model slugs can be retired, rate-limited, or temporarily unavailable.
-// OpenRouter will try the router fallback automatically when the primary fails.
+// The configured slug may be retired from the free tier. Start with OpenRouter's
+// live free-model router, then retain the configured slug as a secondary option.
 function getChatModelRouting() {
-    const models = [...new Set([CHAT_MODEL, CHAT_FALLBACK_MODEL].filter(Boolean))]
+    const models = [...new Set([CHAT_FALLBACK_MODEL, CHAT_MODEL].filter(Boolean))]
     return { model: models[0], extra_body: { models } }
 }
 

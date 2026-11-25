@@ -245,8 +245,9 @@ const ChatPage = () => {
                             setSuggestedQuestions(data.suggestedQuestions || [])
                         } else if (event === "error") {
                             console.error("[Chat] Stream error:", data.message)
+                            setChatError(data.message || "AI is temporarily unavailable. Please try again.")
                             setMessages(prev => prev.map(m =>
-                                m.id === assistantTempId ? { ...m, content: reply || "⚠️ AI is temporarily unavailable. Please try again." } : m
+                                m.id === assistantTempId ? { ...m, content: reply || `⚠️ ${data.message || "AI is temporarily unavailable. Please try again."}` } : m
                             ))
                         }
                     }
@@ -266,8 +267,9 @@ const ChatPage = () => {
                             setSuggestedQuestions(data.suggestedQuestions || [])
                         } else if (event === "error") {
                             console.error("[Chat] Stream error:", data.message)
+                            setChatError(data.message || "AI is temporarily unavailable. Please try again.")
                             setMessages(prev => prev.map(m =>
-                                m.id === assistantTempId ? { ...m, content: reply || "⚠️ AI is temporarily unavailable. Please try again." } : m
+                                m.id === assistantTempId ? { ...m, content: reply || `⚠️ ${data.message || "AI is temporarily unavailable. Please try again."}` } : m
                             ))
                         }
                     }
@@ -289,9 +291,9 @@ const ChatPage = () => {
             console.error("[Chat] Send failed:", err)
             if (err.name !== "AbortError") {
                 setMessages(prev => prev.map(m =>
-                    m.id === assistantTempId ? { ...m, content: "⚠️ AI is temporarily unavailable. Please try again." } : m
+                    m.id === assistantTempId ? { ...m, content: `⚠️ ${err.message || "AI is temporarily unavailable. Please try again."}` } : m
                 ))
-                setChatError("AI is temporarily unavailable. Please try again.")
+                setChatError(err.message || "AI is temporarily unavailable. Please try again.")
             }
         } finally {
             setStreaming(false)
@@ -366,8 +368,9 @@ const ChatPage = () => {
                         setSuggestedQuestions(data.suggestedQuestions || [])
                     } else if (event === "error") {
                         console.error("[Chat] Regenerate error:", data.message)
+                        setChatError(data.message || "AI is temporarily unavailable. Please try again.")
                         setMessages(prev => prev.map(m =>
-                            m.id === assistantTempId ? { ...m, content: reply || "⚠️ AI is temporarily unavailable. Please try again." } : m
+                            m.id === assistantTempId ? { ...m, content: reply || `⚠️ ${data.message || "AI is temporarily unavailable. Please try again."}` } : m
                         ))
                     }
                 }
@@ -383,9 +386,9 @@ const ChatPage = () => {
             console.error("[Chat] Regenerate failed:", err)
             if (err.name !== "AbortError") {
                 setMessages(prev => prev.map(m =>
-                    m.id === assistantTempId ? { ...m, content: "⚠️ AI is temporarily unavailable. Please try again." } : m
+                    m.id === assistantTempId ? { ...m, content: `⚠️ ${err.message || "AI is temporarily unavailable. Please try again."}` } : m
                 ))
-                setChatError("AI is temporarily unavailable. Please try again.")
+                setChatError(err.message || "AI is temporarily unavailable. Please try again.")
             }
         } finally {
             setStreaming(false)

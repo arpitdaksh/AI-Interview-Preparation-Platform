@@ -7,6 +7,31 @@ const { extractFileText } = require("./fileExtract.service")
 const CHAT_MODEL = process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-20b:free"
 const CHAT_FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free"
 
+function getChatErrorMessage(error) {
+    const status = Number(error?.status || error?.statusCode)
+    const message = String(error?.message || "")
+
+    if (!process.env.OPENROUTER_API_KEY) {
+        return "AI chat is not configured on the server. Add OPENROUTER_API_KEY to the backend hosting environment."
+    }
+    if (status === 401 || /invalid api key|authentication/i.test(message)) {
+        return "AI provider authentication failed. Check OPENROUTER_API_KEY in the backend hosting settings."
+    }
+    if (status === 402 || /insufficient credits|payment required/i.test(message)) {
+        return "The AI provider has run out of credits. Add credits or enable an available free model in OpenRouter."
+    }
+    if (status === 403) {
+        return "The AI provider denied access to the selected model. Check model access for the backend API key."
+    }
+    if (status === 404 || /model.*(not found|unavailable)/i.test(message)) {
+        return "The configured AI model is unavailable. Set OPENROUTER_FALLBACK_MODEL=openrouter/free in the backend hosting settings and redeploy."
+    }
+    if (status === 429) {
+        return "The AI provider is rate limited right now. Please wait a moment and try again."
+    }
+    return "The AI provider could not complete this request. Check the backend logs and OpenRouter service status, then try again."
+}
+
 // The configured slug may be retired from the free tier. Start with OpenRouter's
 // live free-model router, then retain the configured slug as a secondary option.
 function getChatModelRouting() {
@@ -563,7 +588,7 @@ async function streamChatReply({ req, res, userId, chatId, message, file }) {
         console.error("[Chat] Streaming error:", error)
 
         if (!res.writableEnded) {
-            send("error", { message: error?.message || "Failed to generate AI reply." })
+            send("error", { message: getChatErrorMessage(error) })
         }
     } finally {
         if (!res.writableEnded) {
@@ -671,7 +696,7 @@ async function regenerateReply({ req, res, userId, chatId }) {
         console.error("[Chat] Regenerate streaming error:", error)
 
         if (!res.writableEnded) {
-            send("error", { message: error?.message || "Failed to regenerate AI reply." })
+            send("error", { message: getChatErrorMessage(error) })
         }
     } finally {
         if (!res.writableEnded) {
@@ -682,6 +707,7 @@ async function regenerateReply({ req, res, userId, chatId }) {
 }
 
 module.exports = {
+    getChatErrorMessage,
     createChat,
     getUserChats,
     getUserChat,

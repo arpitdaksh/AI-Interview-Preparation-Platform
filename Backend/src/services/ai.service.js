@@ -10,6 +10,22 @@ const ai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
 });
 
+// Let OpenRouter choose an available free provider/model. Fixed `:free` model
+// endpoints can temporarily disappear or be unavailable to a particular key.
+const CHAT_MODEL = process.env.OPENROUTER_CHAT_MODEL || "openrouter/free"
+
+async function createChatCompletionWithModelFallback(options) {
+    try {
+        return await ai.chat.completions.create({ ...options, model: CHAT_MODEL })
+    } catch (error) {
+        const status = Number(error?.status || error?.statusCode)
+        if (status !== 404 || CHAT_MODEL === "openrouter/free") throw error
+
+        console.warn(`[AI] Model ${CHAT_MODEL} unavailable; retrying with OpenRouter free router.`)
+        return ai.chat.completions.create({ ...options, model: "openrouter/free" })
+    }
+}
+
 // Find an installed Chromium-based browser for Puppeteer to use for PDF generation.
 // Chrome and Edge (Windows/Mac/Linux) both support headless PDF rendering.
 // const CANDIDATE_BROWSERS = [
@@ -403,8 +419,7 @@ Return ONLY valid JSON in this exact format:
 }
 `;
 
-    const response = await ai.chat.completions.create({
-        model: "openai/gpt-oss-20b:free",
+    const response = await createChatCompletionWithModelFallback({
         messages: [
             {
                 role: "user",
@@ -583,8 +598,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription, titl
 
     let resumeHtml
     try {
-        const response = await ai.chat.completions.create({
-            model: "openai/gpt-oss-20b:free",
+        const response = await createChatCompletionWithModelFallback({
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7
         })
